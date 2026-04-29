@@ -1,6 +1,12 @@
 # google/osv-scanner-action
 
-Hardened GitHub Action by [Chainguard](https://www.chainguard.dev).
+Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/google/osv-scanner-action](https://github.com/google/osv-scanner-action).
+
+## Versions
+
+| Version | Tag | Upstream commit |
+|---------|-----|-----------------|
+| v2.3.5 | [`v2.3.5`](https://github.com/chainguard-actions/osv-scanner-action/tree/v2.3.5) | — |
 
 ## Privacy
 
