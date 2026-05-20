@@ -1,6 +1,0 @@
-{
-  "owner": "google",
-  "name": "osv-scanner-action",
-  "visibility": "internal",
-  "block_publish": false
-}
