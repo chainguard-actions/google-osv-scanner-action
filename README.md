@@ -6,7 +6,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
-| v2.3.5 | [`v2.3.5`](https://github.com/chainguard-actions/google--osv-scanner-action/tree/v2.3.5) | — |
+| v2.3.5 | [`v2.3.5`](https://github.com/chainguard-actions/google-osv-scanner-action/tree/v2.3.5) | — |
 
 ## Privacy
 
