@@ -24,6 +24,6 @@ inputs:
       ./
 runs:
   using: "docker"
-  image: 'docker://ghcr.io/google/osv-scanner-action@sha256:48406c58197201fe55e56615ad9d414f85063da320e204d0b0ed460fb3908dba' # v2.3.8
+  image: "docker://ghcr.io/google/osv-scanner-action@sha256:48406c58197201fe55e56615ad9d414f85063da320e204d0b0ed460fb3908dba" # v2.3.8
   args:
     - ${{ inputs.scan-args }}

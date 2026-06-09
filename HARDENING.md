@@ -14,12 +14,16 @@ Action **google--osv-scanner-action/v2.3.8** was hardened automatically. 1 findi
 
 ### unpinned-uses (severity: high)
 
-Both Docker action files reference the container image `docker://ghcr.io/google/osv-scanner-action:v2.3.8` using a mutable version tag (`v2.3.8`) instead of an immutable SHA digest (e.g., `ghcr.io/google/osv-scanner-action@sha256:<64-hex-char-digest>`). A mutable tag can be silently updated to point to a different image, enabling supply-chain attacks.
+Both docker action files reference the container image `docker://ghcr.io/google/osv-scanner-action:v2.3.8` using a mutable version tag instead of an immutable SHA digest. This means the image could be replaced with a different (potentially malicious) version without changing the action configuration, creating a supply-chain risk. The image reference should use a SHA digest, e.g. `docker://ghcr.io/google/osv-scanner-action@sha256:<64-hex-char-digest>`.
+
+Failing references:
+- `osv-reporter-action/action.yml` line 25: `image: "docker://ghcr.io/google/osv-scanner-action:v2.3.8"`
+- `osv-scanner-action/action.yml` line 27: `image: "docker://ghcr.io/google/osv-scanner-action:v2.3.8"`
 
 Locations:
 
+- `osv-reporter-action/action.yml:25`
 - `osv-scanner-action/action.yml:27`
-- `osv-reporter-action/action.yml:27`
 
 ## Iteration Notes
 
@@ -29,5 +33,9 @@ Locations:
 
 **Notes:**
 
-Replaced mutable tag `docker://ghcr.io/google/osv-scanner-action:v2.3.8` with immutable digest `docker://ghcr.io/google/osv-scanner-action@sha256:48406c58197201fe55e56615ad9d414f85063da320e204d0b0ed460fb3908dba` in both osv-scanner-action/action.yml (line 27) and osv-reporter-action/action.yml (line 27). The original tag is preserved as a comment outside the quoted string for readability.
+Pinned the container image `ghcr.io/google/osv-scanner-action:v2.3.8` to its immutable SHA digest `sha256:48406c58197201fe55e56615ad9d414f85063da320e204d0b0ed460fb3908dba` in both:
+- `osv-reporter-action/action.yml` (line 25)
+- `osv-scanner-action/action.yml` (line 27)
+
+The version tag `v2.3.8` is preserved as a comment outside the YAML string quotes for readability.
 
