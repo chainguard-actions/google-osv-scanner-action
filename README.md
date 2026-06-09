@@ -1,5 +1,7 @@
 # google/osv-scanner-action
 
+Scans your dependencies against the OSV database for vulnerabilties.
+
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/google/osv-scanner-action](https://github.com/google/osv-scanner-action).
 
 ## Versions
