@@ -1,8 +1,10 @@
+<!-- markdownlint-disable -->
+
 # Hardening Report: google--osv-scanner-action/v2.3.8
 
 > This file was generated automatically by the hardening agent.
 
-**Policy SHA:** `ff50f15e4b79bfbf764dafdfd2579175a6ea9771`
+**Policy SHA:** `d636be7e43ef829af6e853da6b3c7566db9f72fe`
 
 **Test Policy SHA:** `843adf9e4b8f85d0c08b27b9d0b09dd094b54702`
 
@@ -14,16 +16,12 @@ Action **google--osv-scanner-action/v2.3.8** was hardened automatically. 1 findi
 
 ### unpinned-uses (severity: high)
 
-Both docker action files reference the container image `docker://ghcr.io/google/osv-scanner-action:v2.3.8` using a mutable version tag instead of an immutable SHA digest. This means the image could be replaced with a different (potentially malicious) version without changing the action configuration, creating a supply-chain risk. The image reference should use a SHA digest, e.g. `docker://ghcr.io/google/osv-scanner-action@sha256:<64-hex-char-digest>`.
-
-Failing references:
-- `osv-reporter-action/action.yml` line 25: `image: "docker://ghcr.io/google/osv-scanner-action:v2.3.8"`
-- `osv-scanner-action/action.yml` line 27: `image: "docker://ghcr.io/google/osv-scanner-action:v2.3.8"`
+Both Docker action files reference the container image `docker://ghcr.io/google/osv-scanner-action:v2.3.8` using a mutable version tag (`:v2.3.8`) instead of an immutable SHA digest. A mutable tag can be silently updated to point to a different (potentially malicious) image, enabling supply-chain attacks. The image reference should use a SHA digest, e.g. `docker://ghcr.io/google/osv-scanner-action@sha256:<64-hex-char-digest>`.
 
 Locations:
 
-- `osv-reporter-action/action.yml:25`
-- `osv-scanner-action/action.yml:27`
+- `osv-reporter-action/action.yml:24`
+- `osv-scanner-action/action.yml:24`
 
 ## Iteration Notes
 
@@ -33,9 +31,9 @@ Locations:
 
 **Notes:**
 
-Pinned the container image `ghcr.io/google/osv-scanner-action:v2.3.8` to its immutable SHA digest `sha256:48406c58197201fe55e56615ad9d414f85063da320e204d0b0ed460fb3908dba` in both:
-- `osv-reporter-action/action.yml` (line 25)
-- `osv-scanner-action/action.yml` (line 27)
+Replaced the mutable tag reference `docker://ghcr.io/google/osv-scanner-action:v2.3.8` with the immutable SHA digest `docker://ghcr.io/google/osv-scanner-action@sha256:48406c58197201fe55e56615ad9d414f85063da320e204d0b0ed460fb3908dba` in both:
+- osv-reporter-action/action.yml (line 24)
+- osv-scanner-action/action.yml (line 24)
 
-The version tag `v2.3.8` is preserved as a comment outside the YAML string quotes for readability.
+The original tag is preserved as a comment `# v2.3.8` outside the YAML string quotes for readability.
 
