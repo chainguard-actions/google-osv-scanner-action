@@ -1,0 +1,31 @@
+name: Test osv-scanner-action with default scan args
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Test the osv-scanner-action sub-action with default scan-args.
+      # The default args are "--recursive ./" which scans the whole repo.
+      # We use continue-on-error because the repo may have vulnerabilities
+      # (exit code 1) or no lockfiles (exit code 0) — both are valid outcomes.
+      - id: scanner
+        uses: ./osv-scanner-action
+        continue-on-error: true
+
+      - name: Assert scanner ran
+        run: |
+          echo "osv-scanner-action completed with outcome: ${{ steps.scanner.outcome }}"
+          # The scanner should either succeed (no vulns) or fail (vulns found).
+          # Both are valid — what matters is it ran (not 'skipped' or 'cancelled').
+          OUTCOME="${{ steps.scanner.outcome }}"
+          if [ "$OUTCOME" = "skipped" ] || [ "$OUTCOME" = "cancelled" ]; then
+            echo "FAIL: scanner was skipped or cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: scanner ran with outcome=$OUTCOME"

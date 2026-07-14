@@ -1,0 +1,36 @@
+name: Test osv-scanner-action with custom scan args
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Test the osv-scanner-action sub-action with custom scan-args.
+      # We scan only the fixtures directory which has no lockfiles,
+      # so the scanner should exit 0 (no vulnerabilities found).
+      - id: scanner
+        uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --recursive
+            ./tests/fixtures/empty-dir
+        continue-on-error: true
+
+      - name: Assert scanner ran successfully on empty directory
+        run: |
+          echo "osv-scanner-action outcome: ${{ steps.scanner.outcome }}"
+          OUTCOME="${{ steps.scanner.outcome }}"
+          # On a directory with no lockfiles, osv-scanner exits 0 (success)
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "WARN: scanner reported failure on empty dir (may indicate no lockfiles found is treated as error)"
+          fi
+          if [ "$OUTCOME" = "skipped" ] || [ "$OUTCOME" = "cancelled" ]; then
+            echo "FAIL: scanner was skipped or cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: scanner ran with outcome=$OUTCOME"

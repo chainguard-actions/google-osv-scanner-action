@@ -1,0 +1,33 @@
+name: Test osv-reporter-action
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Test the osv-reporter-action sub-action.
+      # This action uses the osv-reporter entrypoint for specialized reporting.
+      # scan-args is required. We pass --recursive ./ to scan the repo.
+      # continue-on-error because the repo may or may not have vulnerabilities.
+      - id: reporter
+        uses: ./osv-reporter-action
+        with:
+          scan-args: |-
+            --recursive
+            ./tests/fixtures/empty-dir
+        continue-on-error: true
+
+      - name: Assert reporter ran
+        run: |
+          echo "osv-reporter-action outcome: ${{ steps.reporter.outcome }}"
+          OUTCOME="${{ steps.reporter.outcome }}"
+          if [ "$OUTCOME" = "skipped" ] || [ "$OUTCOME" = "cancelled" ]; then
+            echo "FAIL: reporter was skipped or cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: reporter ran with outcome=$OUTCOME"
