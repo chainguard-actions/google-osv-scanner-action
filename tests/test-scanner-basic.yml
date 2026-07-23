@@ -1,0 +1,34 @@
+name: Test osv-scanner-action basic scan
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a clean directory with no dependency files so the scanner finds nothing to flag
+      - name: Create clean scan target directory
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/clean-dir"
+          echo "# Hello World" > "$GITHUB_WORKSPACE/tests/fixtures/clean-dir/README.md"
+
+      - name: Run osv-scanner on clean directory
+        id: scanner
+        uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --recursive
+            ./tests/fixtures/clean-dir
+        continue-on-error: true
+
+      - name: Assert scanner ran successfully on clean directory
+        env:
+          OUTCOME: ${{ steps.scanner.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: expected scanner to succeed on a clean directory with no dependency files, got: $OUTCOME"
+            exit 1
+          fi
+          echo "PASS"

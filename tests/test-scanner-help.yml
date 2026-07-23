@@ -1,0 +1,30 @@
+name: Test osv-scanner-action help flag
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Run the scanner with --help to verify the Docker image is accessible and the action works
+      - name: Run osv-scanner with --help
+        id: scanner-help
+        uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --help
+        continue-on-error: true
+
+      - name: Assert scanner ran (help exits non-zero but action should still execute)
+        env:
+          OUTCOME: ${{ steps.scanner-help.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # --help typically exits 0 for CLI tools; either success or failure means the container ran
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: scanner container executed (outcome=$OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi

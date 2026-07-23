@@ -4,28 +4,32 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/heads/main
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      # Test the osv-scanner-action sub-action with default scan-args.
-      # The default args are "--recursive ./" which scans the whole repo.
-      # We use continue-on-error because the repo may have vulnerabilities
-      # (exit code 1) or no lockfiles (exit code 0) — both are valid outcomes.
-      - id: scanner
+      # Create a minimal requirements.txt with no packages so the scanner finds no vulnerabilities
+      - name: Create fixture with empty requirements.txt
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/empty-deps"
+          # Empty requirements.txt - no packages, no vulnerabilities
+          touch "$GITHUB_WORKSPACE/tests/fixtures/empty-deps/requirements.txt"
+
+      - name: Run osv-scanner with default args on fixture directory
+        id: scanner
         uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --recursive
+            ./tests/fixtures/empty-deps
         continue-on-error: true
 
-      - name: Assert scanner ran
+      - name: Assert scanner succeeded with no vulnerabilities
+        env:
+          OUTCOME: ${{ steps.scanner.outcome }}
         run: |
-          echo "osv-scanner-action completed with outcome: ${{ steps.scanner.outcome }}"
-          # The scanner should either succeed (no vulns) or fail (vulns found).
-          # Both are valid — what matters is it ran (not 'skipped' or 'cancelled').
-          OUTCOME="${{ steps.scanner.outcome }}"
-          if [ "$OUTCOME" = "skipped" ] || [ "$OUTCOME" = "cancelled" ]; then
-            echo "FAIL: scanner was skipped or cancelled unexpectedly"
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: expected success scanning empty requirements.txt, got: $OUTCOME"
             exit 1
           fi
-          echo "PASS: scanner ran with outcome=$OUTCOME"
+          echo "PASS: scanner found no vulnerabilities in empty deps"

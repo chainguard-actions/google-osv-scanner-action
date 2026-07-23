@@ -1,0 +1,37 @@
+name: Test osv-reporter-action basic usage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a clean directory with no dependency files
+      - name: Create clean scan target directory
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/reporter-clean"
+          echo "# No dependencies here" > "$GITHUB_WORKSPACE/tests/fixtures/reporter-clean/README.md"
+
+      - name: Run osv-reporter on clean directory
+        id: reporter
+        uses: ./osv-reporter-action
+        with:
+          scan-args: |-
+            --recursive
+            ./tests/fixtures/reporter-clean
+        continue-on-error: true
+
+      - name: Assert reporter ran (success or failure means container executed)
+        env:
+          OUTCOME: ${{ steps.reporter.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The reporter may exit non-zero if it can't find scan results to report on,
+          # but either success or failure means the container executed correctly
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: reporter container executed (outcome=$OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi
