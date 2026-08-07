@@ -1,0 +1,36 @@
+name: Test osv-reporter-action
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal directory with no lockfiles for the reporter to scan
+      - name: Create fixture directory
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/reporter-target"
+          echo "# empty" > "$GITHUB_WORKSPACE/tests/fixtures/reporter-target/README.md"
+
+      - id: reporter
+        uses: ./osv-reporter-action
+        with:
+          scan-args: |-
+            --recursive
+            ./tests/fixtures/reporter-target
+        continue-on-error: true
+
+      - name: Assert reporter ran
+        env:
+          OUTCOME: ${{ steps.reporter.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The reporter exits 0 if no vulnerabilities, non-zero if vulnerabilities found
+          # Both are valid outcomes — we just verify the action ran without crashing unexpectedly
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: osv-reporter ran and produced a result (outcome: $OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

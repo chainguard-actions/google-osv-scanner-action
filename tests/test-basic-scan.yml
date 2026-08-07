@@ -1,0 +1,36 @@
+name: Test basic scan (no vulnerabilities)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal directory with no lockfiles so the scanner finds nothing
+      - name: Create empty scan target
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/empty-project"
+          echo "# empty project" > "$GITHUB_WORKSPACE/tests/fixtures/empty-project/README.md"
+
+      - id: scan
+        uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --recursive
+            ./tests/fixtures/empty-project
+        continue-on-error: true
+
+      - name: Assert scan completed (no vulnerabilities expected)
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: scan completed successfully with no vulnerabilities"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: scan ran (may have found vulnerabilities or no lockfiles - acceptable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

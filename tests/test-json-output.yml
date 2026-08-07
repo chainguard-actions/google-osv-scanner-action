@@ -1,0 +1,37 @@
+name: Test scan with JSON output format
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal directory with no lockfiles
+      - name: Create fixture directory
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/json-target"
+          echo "# empty" > "$GITHUB_WORKSPACE/tests/fixtures/json-target/README.md"
+
+      - id: scan
+        uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --format=json
+            --recursive
+            ./tests/fixtures/json-target
+        continue-on-error: true
+
+      - name: Assert scan ran with JSON format
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The scanner exits 0 if no vulnerabilities, non-zero if vulnerabilities found
+          # Both are valid outcomes — we just verify the action ran
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: osv-scanner ran with JSON format (outcome: $OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

@@ -1,6 +1,11 @@
 {
   "owner": "google",
   "repo": "osv-scanner-action",
-  "version": "",
-  "url": "https://github.com/google/osv-scanner-action"
+  "version": "v2.5.0",
+  "commit_sha": "8deb546fdb875b9996d27d4950be7312dac076a1",
+  "url": "https://github.com/google/osv-scanner-action",
+  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
+  "test_agent_version": "2",
+  "harden_agent_version": "2"
 }
