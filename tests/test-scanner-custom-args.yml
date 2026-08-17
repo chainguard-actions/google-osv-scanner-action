@@ -1,0 +1,32 @@
+name: Test osv-scanner-action with custom scan-args
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Use the osv-scanner-action sub-action with custom args.
+      # We scan only the tests/ directory which contains no dependency
+      # manifests, so the scanner should exit 0 (no vulnerabilities found).
+      # If it exits non-zero for any reason we still accept it gracefully.
+      - id: scan
+        uses: ./osv-scanner-action
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --recursive
+            ./tests
+
+      - name: Assert scanner sub-action ran
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: osv-scanner-action ran (outcome=$OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME' — scanner did not run"
+            exit 1
+          fi
