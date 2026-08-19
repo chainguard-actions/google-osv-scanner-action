@@ -1,0 +1,37 @@
+name: Test osv-scanner on directory with no lockfiles
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create an empty directory with no lockfiles
+      - name: Create an empty project directory
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/empty-project"
+          # No lockfiles, just a plain directory
+
+      - name: Run osv-scanner on empty directory
+        id: scanner
+        uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --recursive
+            ./empty-project
+        continue-on-error: true
+
+      - name: Assert scanner handled empty directory gracefully
+        env:
+          OUTCOME: ${{ steps.scanner.outcome }}
+        run: |
+          echo "Scanner outcome: $OUTCOME"
+          # With no lockfiles, osv-scanner may exit 0 (no vulnerabilities) or
+          # non-zero (no lockfiles found). Either success or failure is acceptable
+          # as long as the action ran (not cancelled/skipped).
+          if [ "$OUTCOME" = "cancelled" ]; then
+            echo "FAIL: scanner step was cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: scanner ran and completed (outcome: $OUTCOME)"

@@ -1,0 +1,38 @@
+name: Test osv-scanner with JSON format output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal project with no known vulnerable dependencies
+      - name: Create a minimal lockfile for scanning
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/test-project"
+          # Create a requirements.txt with no dependencies
+          touch "$GITHUB_WORKSPACE/test-project/requirements.txt"
+
+      - name: Run osv-scanner with JSON format
+        id: scanner
+        uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --format=json
+            --recursive
+            ./test-project
+        continue-on-error: true
+
+      - name: Assert scanner ran (JSON format)
+        env:
+          OUTCOME: ${{ steps.scanner.outcome }}
+        run: |
+          echo "Scanner outcome: $OUTCOME"
+          # With an empty requirements.txt, no vulnerabilities should be found
+          # so the scanner should exit 0 (success)
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: expected scanner to succeed with empty requirements.txt, got: $OUTCOME"
+            exit 1
+          fi
+          echo "PASS: scanner completed successfully with JSON format"

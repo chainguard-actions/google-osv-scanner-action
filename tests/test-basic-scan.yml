@@ -1,0 +1,36 @@
+name: Test basic osv-scanner scan
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal project with no known vulnerable dependencies
+      - name: Create a minimal lockfile for scanning
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/test-project"
+          # Create a requirements.txt with no dependencies (empty file)
+          touch "$GITHUB_WORKSPACE/test-project/requirements.txt"
+
+      - name: Run osv-scanner on test project
+        id: scanner
+        uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --recursive
+            ./test-project
+        continue-on-error: true
+
+      - name: Assert scanner ran successfully
+        env:
+          OUTCOME: ${{ steps.scanner.outcome }}
+        run: |
+          echo "Scanner outcome: $OUTCOME"
+          # The scanner should succeed (exit 0) with no vulnerabilities found
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: expected scanner to succeed with no vulnerabilities, got: $OUTCOME"
+            exit 1
+          fi
+          echo "PASS: scanner completed successfully"

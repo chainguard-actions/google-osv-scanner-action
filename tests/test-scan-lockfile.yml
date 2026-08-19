@@ -1,0 +1,36 @@
+name: Test osv-scanner scanning a specific lockfile
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal requirements.txt file (empty, no dependencies)
+      - name: Create a minimal requirements.txt lockfile
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/py-project"
+          # Empty requirements.txt means no dependencies to scan
+          touch "$GITHUB_WORKSPACE/py-project/requirements.txt"
+
+      - name: Run osv-scanner on specific lockfile
+        id: scanner
+        uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --lockfile=requirements.txt:./py-project/requirements.txt
+        continue-on-error: true
+
+      - name: Assert scanner ran on specific lockfile
+        env:
+          OUTCOME: ${{ steps.scanner.outcome }}
+        run: |
+          echo "Scanner outcome: $OUTCOME"
+          # With an empty requirements.txt, no vulnerabilities should be found
+          # so the scanner should exit 0 (success)
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: expected scanner to succeed with empty requirements.txt, got: $OUTCOME"
+            exit 1
+          fi
+          echo "PASS: scanner completed successfully on specific lockfile"
