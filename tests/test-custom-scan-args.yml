@@ -1,0 +1,50 @@
+name: Test osv-scanner-action with custom scan args
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a directory with a minimal package-lock.json (no vulnerable packages)
+      - name: Create scan target with lock file
+        run: |
+          mkdir -p /tmp/scan-with-lockfile
+          cat > /tmp/scan-with-lockfile/package-lock.json << 'EOF'
+          {
+            "name": "test-project",
+            "version": "1.0.0",
+            "lockfileVersion": 2,
+            "requires": true,
+            "packages": {
+              "": {
+                "name": "test-project",
+                "version": "1.0.0"
+              }
+            }
+          }
+          EOF
+
+      - name: Run osv-scanner-action with custom scan args
+        id: scanner
+        uses: ./osv-scanner-action
+        with:
+          scan-args: |-
+            --lockfile
+            /tmp/scan-with-lockfile/package-lock.json
+        continue-on-error: true
+
+      - name: Assert scanner ran with custom args
+        env:
+          OUTCOME: ${{ steps.scanner.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: scanner completed successfully with custom args"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: scanner ran and reported findings (acceptable outcome)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

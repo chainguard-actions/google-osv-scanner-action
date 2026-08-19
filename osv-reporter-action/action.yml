@@ -22,7 +22,7 @@ inputs:
     required: true
 runs:
   using: "docker"
-  image: "docker://ghcr.io/google/osv-scanner-action@sha256:512bc221cb77a33325bc92cf45c0c8a45f2689be8593dc4e541058590f4ce09f" # v2.3.5
+  image: "docker://ghcr.io/google/osv-scanner-action:v2.3.5@sha256:512bc221cb77a33325bc92cf45c0c8a45f2689be8593dc4e541058590f4ce09f"
   entrypoint: /root/osv-reporter
   args:
     - "${{ inputs.scan-args }}"

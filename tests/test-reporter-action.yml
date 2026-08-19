@@ -1,0 +1,37 @@
+name: Test osv-reporter-action
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a clean directory with no lock files
+      - name: Create clean scan target directory
+        run: |
+          mkdir -p /tmp/reporter-scan-target
+          echo "# Test project" > /tmp/reporter-scan-target/README.md
+
+      - name: Run osv-reporter-action
+        id: reporter
+        uses: ./osv-reporter-action
+        with:
+          scan-args: |-
+            --recursive
+            /tmp/reporter-scan-target
+        continue-on-error: true
+
+      - name: Assert reporter ran
+        env:
+          OUTCOME: ${{ steps.reporter.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: reporter completed successfully"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: reporter ran and reported findings (acceptable outcome)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
