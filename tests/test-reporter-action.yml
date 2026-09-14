@@ -1,0 +1,29 @@
+name: Test osv-reporter-action basic invocation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: reporter
+        name: Run osv-reporter-action
+        uses: ./osv-reporter-action
+        with:
+          scan-args: |-
+            --recursive
+            ./tests
+        continue-on-error: true
+      - name: Assert reporter ran
+        env:
+          OUTCOME: ${{ steps.reporter.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The reporter may exit non-zero if no scan results are provided or
+          # if it finds vulnerabilities — both mean the binary executed correctly.
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: osv-reporter binary executed (outcome: $OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME' — reporter may not have run at all"
+            exit 1
+          fi

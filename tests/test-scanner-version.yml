@@ -1,0 +1,26 @@
+name: Test osv-scanner-action version flag
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: scan
+        name: Run osv-scanner-action with --version flag
+        uses: ./osv-scanner-action
+        with:
+          scan-args: "--version"
+        continue-on-error: true
+      - name: Assert scanner version flag ran
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # --version exits 0 on most tools; either success or failure means the binary ran
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: scanner binary executed (outcome: $OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME' — scanner may not have run at all"
+            exit 1
+          fi

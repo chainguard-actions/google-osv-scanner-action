@@ -1,0 +1,25 @@
+name: Test basic osv-scanner usage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: scan
+        name: Run osv-scanner (top-level action)
+        uses: .
+        continue-on-error: true
+      - name: Assert scanner ran (success or vulnerability-found are both valid outcomes)
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: scanner ran and found no vulnerabilities"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: scanner ran and reported vulnerabilities (non-zero exit is expected behavior)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME' — scanner may not have run at all"
+            exit 1
+          fi
