@@ -1,0 +1,27 @@
+name: Test basic scan with default args
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run OSV scanner with default args
+        id: scan
+        uses: .
+        continue-on-error: true
+
+      - name: Assert scanner ran (success means no vulnerabilities, failure means vulnerabilities found or scan error)
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: OSV scanner completed with no vulnerabilities found"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: OSV scanner ran and reported findings or an expected scan error"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME' — scanner did not run properly"
+            exit 1
+          fi

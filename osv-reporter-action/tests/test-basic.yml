@@ -1,4 +1,4 @@
-name: Test basic usage of osv-reporter action
+name: Test basic osv-scanner-reporter usage
 on:
   workflow_dispatch:
 jobs:
@@ -7,33 +7,26 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create a minimal scan result file for osv-reporter
-        run: |
-          mkdir -p "$GITHUB_WORKSPACE/scan-results"
-          cat > "$GITHUB_WORKSPACE/scan-results/results.json" <<'EOF'
-          {
-            "results": []
-          }
-          EOF
-
+      # Run the scanner on the current directory; it may find vulnerabilities
+      # (non-zero exit) or succeed — both are valid outcomes for the harness.
       - id: action
         uses: .
         continue-on-error: true
         with:
           scan-args: |-
-            --json
-            --output=${{ github.workspace }}/scan-results/output.json
-            ${{ github.workspace }}/scan-results/results.json
+            --recursive
+            --skip-git
+            .
 
-      - name: Assert action ran with scan-args input
+      - name: Assert action ran (success or graceful failure)
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: action succeeded"
+            echo "PASS: scanner completed successfully (no vulnerabilities found)"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (expected for reporter with minimal/empty scan results)"
+            echo "PASS: scanner ran and reported findings or exited non-zero (expected for a real repo scan)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1

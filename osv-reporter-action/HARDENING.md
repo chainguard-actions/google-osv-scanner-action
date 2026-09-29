@@ -16,11 +16,11 @@ Action **google--osv-scanner-action--osv-reporter-action/v2.5.1** was hardened a
 
 ### unpinned-uses (severity: high)
 
-The Docker action's `runs.image` references a mutable image tag (`v2.5.1`) instead of an immutable SHA digest. If the tag is moved or the registry is compromised, a different (potentially malicious) image could be pulled silently. Failing reference: `image: "docker://ghcr.io/google/osv-scanner-action:v2.5.1"`. It should be pinned to a full SHA256 digest, e.g. `image: "docker://ghcr.io/google/osv-scanner-action@sha256:<64-hex-char-digest> # v2.5.1"`.
+The Docker image reference in action.yml uses a mutable version tag instead of an immutable SHA digest. `image: "docker://ghcr.io/google/osv-scanner-action:v2.5.1"` should be pinned to a full SHA256 digest (e.g. `image: "ghcr.io/google/osv-scanner-action@sha256:<64-hex-char-digest> # v2.5.1"`) to prevent supply-chain attacks where the tag is silently moved to a different image.
 
 Locations:
 
-- `action.yml:25`
+- `action.yml:24`
 
 ## Iteration Notes
 
@@ -30,5 +30,5 @@ Locations:
 
 **Notes:**
 
-Pinned the Docker image reference in action.yml from `docker://ghcr.io/google/osv-scanner-action:v2.5.1` to `docker://ghcr.io/google/osv-scanner-action:v2.5.1@sha256:dcd947131d8d11b8d0964de6590661fb921a4ecbd7b90a7cb21083acfc3fd8cc`. The tag is kept inline alongside the digest for readability, and the `docker://` scheme is preserved so GitHub Actions correctly treats this as a pre-built image rather than a local Dockerfile.
+Pinned the Docker image reference in action.yml from the mutable tag `docker://ghcr.io/google/osv-scanner-action:v2.5.1` to the immutable digest `docker://ghcr.io/google/osv-scanner-action:v2.5.1@sha256:dcd947131d8d11b8d0964de6590661fb921a4ecbd7b90a7cb21083acfc3fd8cc`. The docker:// scheme and version tag are preserved inline as required.
 

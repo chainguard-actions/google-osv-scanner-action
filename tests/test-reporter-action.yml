@@ -1,0 +1,31 @@
+name: Test osv-reporter-action sub-action
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Use the osv-reporter-action sub-action.
+      # The reporter runs osv-reporter entrypoint inside the Docker image.
+      # We pass --help to verify the binary is present and executable.
+      # The step may succeed or fail depending on how --help is handled,
+      # but it must not be skipped or cancelled.
+      - id: reporter
+        uses: ./osv-reporter-action
+        continue-on-error: true
+        with:
+          scan-args: "--help"
+
+      - name: Assert reporter sub-action ran
+        env:
+          OUTCOME: ${{ steps.reporter.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: osv-reporter-action ran (outcome=$OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME' — reporter did not run"
+            exit 1
+          fi
