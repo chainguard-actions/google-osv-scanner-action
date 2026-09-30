@@ -16,11 +16,11 @@ Action **google--osv-scanner-action--osv-scanner-action/v2.6.0** was hardened au
 
 ### unpinned-uses (severity: high)
 
-The Docker action's `runs.image:` field references a mutable image tag (`docker://ghcr.io/google/osv-scanner-action:v2.6.0`) instead of an immutable SHA digest. This means the image pulled at runtime could change without notice, enabling a supply-chain attack. It should be pinned to a specific SHA digest, e.g. `image: ghcr.io/google/osv-scanner-action@sha256:<64-hex-char-digest> # v2.6.0`.
+The Docker action image is referenced by a mutable version tag (`v2.6.0`) rather than an immutable SHA digest. This means a supply-chain compromise of the image registry could silently replace the image. The reference `docker://ghcr.io/google/osv-scanner-action:v2.6.0` should be changed to use a SHA digest, e.g. `docker://ghcr.io/google/osv-scanner-action@sha256:<64-hex-char-digest> # v2.6.0`.
 
 Locations:
 
-- `action.yml:25`
+- `action.yml:27`
 
 ## Iteration Notes
 
@@ -30,5 +30,5 @@ Locations:
 
 **Notes:**
 
-Pinned the Docker image reference in action.yml from `docker://ghcr.io/google/osv-scanner-action:v2.6.0` to `docker://ghcr.io/google/osv-scanner-action:v2.6.0@sha256:71ad04ab2f8798be47870f9b18817ad317c2f8f2f97aa6726ba10d5578bc174a`. The `docker://` scheme and `:v2.6.0` tag are preserved inline alongside the immutable digest.
+Pinned the Docker container image reference in action.yml from `docker://ghcr.io/google/osv-scanner-action:v2.6.0` to `docker://ghcr.io/google/osv-scanner-action:v2.6.0@sha256:71ad04ab2f8798be47870f9b18817ad317c2f8f2f97aa6726ba10d5578bc174a`. The docker:// scheme and version tag are preserved; the SHA digest makes the reference immutable.
 
