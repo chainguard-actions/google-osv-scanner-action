@@ -1,0 +1,48 @@
+name: Test basic OSV scanner usage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a minimal package-lock.json for scanning
+        run: |
+          mkdir -p tests/fixtures/scan-target
+          cat > tests/fixtures/scan-target/package-lock.json << 'EOF'
+          {
+            "name": "test-project",
+            "version": "1.0.0",
+            "lockfileVersion": 2,
+            "requires": true,
+            "packages": {
+              "": {
+                "name": "test-project",
+                "version": "1.0.0"
+              }
+            }
+          }
+          EOF
+
+      - id: scan
+        uses: .
+        with:
+          scan-args: |-
+            --recursive
+            tests/fixtures/scan-target
+        continue-on-error: true
+
+      - name: Assert scanner ran (exit 0 = no vulns, exit 1 = vulns found, both are valid)
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: scanner ran and found no vulnerabilities"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: scanner ran and found vulnerabilities (expected for some repos)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

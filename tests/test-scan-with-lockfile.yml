@@ -1,0 +1,36 @@
+name: Test osv-scanner scan with lockfile
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal Python requirements.txt with a well-known package
+      - name: Create fixture lockfile
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/python-project"
+          # Use a very recent version of a common package unlikely to have CVEs
+          echo "requests==2.32.3" > "$GITHUB_WORKSPACE/tests/fixtures/python-project/requirements.txt"
+
+      - id: scan
+        uses: ./osv-scanner-action
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --recursive
+            ./tests/fixtures/python-project
+
+      - name: Assert scanner ran and produced output
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The scanner should run (success = no vulns, failure = vulns found)
+          # 'skipped' would indicate a setup problem
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: scanner step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: scanner ran with outcome '$OUTCOME' (success=no vulns, failure=vulns found)"

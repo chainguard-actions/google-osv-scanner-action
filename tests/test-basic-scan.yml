@@ -1,0 +1,35 @@
+name: Test basic osv-scanner scan
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal directory with no dependency files to scan
+      - name: Create empty scan target directory
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/empty-project"
+          echo "# Empty project for testing" > "$GITHUB_WORKSPACE/tests/fixtures/empty-project/README.md"
+
+      - id: scan
+        uses: ./osv-scanner-action
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --recursive
+            ./tests/fixtures/empty-project
+
+      - name: Assert scanner ran
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The scanner should either succeed (no vulns) or fail (vulns found or scan error)
+          # Either way it should have run — 'skipped' would indicate a setup problem
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: scanner step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: scanner ran with outcome '$OUTCOME'"

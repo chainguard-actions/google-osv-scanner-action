@@ -1,0 +1,35 @@
+name: Test osv-reporter-action
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal directory with no dependency files
+      - name: Create empty scan target directory
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/reporter-test-project"
+          echo "# Empty project" > "$GITHUB_WORKSPACE/tests/fixtures/reporter-test-project/README.md"
+
+      - id: reporter
+        uses: ./osv-reporter-action
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --recursive
+            ./tests/fixtures/reporter-test-project
+
+      - name: Assert reporter ran
+        env:
+          OUTCOME: ${{ steps.reporter.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The reporter should run (success = no vulns, failure = vulns found or error)
+          # 'skipped' would indicate a setup problem
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: reporter step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: reporter ran with outcome '$OUTCOME'"

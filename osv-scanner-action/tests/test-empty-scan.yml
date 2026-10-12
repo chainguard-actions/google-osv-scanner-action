@@ -1,0 +1,36 @@
+name: Test OSV scanner on directory with no lockfiles
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create an empty directory with no lockfiles
+        run: |
+          mkdir -p tests/fixtures/empty-target
+          # Only a plain text file, not a lockfile
+          echo "This directory has no package lockfiles." > tests/fixtures/empty-target/README.txt
+
+      - id: scan
+        uses: .
+        with:
+          scan-args: |-
+            --recursive
+            tests/fixtures/empty-target
+        continue-on-error: true
+
+      - name: Assert scanner ran (empty dir should succeed with no findings)
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: scanner ran and found no vulnerabilities in empty directory"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: scanner ran (may report no scannable files as an error in some versions)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

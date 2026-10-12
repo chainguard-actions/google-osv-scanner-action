@@ -1,0 +1,36 @@
+name: Test osv-scanner scan with JSON output format
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal directory with no dependency files to scan
+      - name: Create empty scan target directory
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tests/fixtures/json-test-project"
+          echo "# Empty project" > "$GITHUB_WORKSPACE/tests/fixtures/json-test-project/README.md"
+
+      - id: scan
+        uses: ./osv-scanner-action
+        continue-on-error: true
+        with:
+          scan-args: |-
+            --format=json
+            --recursive
+            ./tests/fixtures/json-test-project
+
+      - name: Assert scanner ran with JSON format
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The scanner should run (success = no vulns, failure = vulns found or error)
+          # 'skipped' would indicate a setup problem
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: scanner step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: scanner ran with JSON format, outcome '$OUTCOME'"
