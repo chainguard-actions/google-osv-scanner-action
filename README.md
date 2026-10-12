@@ -14,6 +14,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v2.5.0 | [`v2.5.0`](https://github.com/chainguard-actions/google-osv-scanner-action/tree/v2.5.0) | [`8deb546`](https://github.com/google/osv-scanner-action/commit/8deb546fdb875b9996d27d4950be7312dac076a1) |
 | v2.5.1 | [`v2.5.1`](https://github.com/chainguard-actions/google-osv-scanner-action/tree/v2.5.1) | [`6e4298e`](https://github.com/google/osv-scanner-action/commit/6e4298ebc4db23e847df9b2e2de2939d6f066c67) |
 | v2.6.0 | [`v2.6.0`](https://github.com/chainguard-actions/google-osv-scanner-action/tree/v2.6.0) | [`a345acf`](https://github.com/google/osv-scanner-action/commit/a345acffa64b0eaede81a3d9aae6141214d9c8fc) |
+| v2.7.0 | [`v2.7.0`](https://github.com/chainguard-actions/google-osv-scanner-action/tree/v2.7.0) | [`b1d267a`](https://github.com/google/osv-scanner-action/commit/b1d267aea5211fa648d9d442fa64b90dbdcbdd36) |
 
 ## Privacy
 
